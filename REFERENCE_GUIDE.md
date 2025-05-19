@@ -192,6 +192,7 @@ CREATE TABLE raw_object (
 #### Key Functions:
 - `init_db()`: Initializes the database schema
 - `create_run()`: Creates a new audit run record
+- `finalize_run()`: Marks a run as complete
 - `start_section()`/`complete_section()`: Tracks audit section execution
 - `insert_finding()`: Records security findings
 - `insert_stat()`: Stores statistical data

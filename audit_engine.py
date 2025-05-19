@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+
+from typing import Any, Callable, Dict, Iterable, List
 from typing import Callable, Dict, Iterable, List
 import os
 
@@ -205,7 +207,12 @@ def audit_chromeos_devices() -> AuditSectionResult:
     return result
 
 
-def run_audit() -> List[AuditSectionResult]:
+def run_audit(
+    *,
+    domain: str | None = None,
+    cli_args: dict[str, Any] | None = None,
+    skipped_services: Iterable[str] | None = None,
+) -> List[AuditSectionResult]:
     """Run all audit sections and record results in the database."""
     logger.info("Starting audit run")
     run_id = db.create_run()
@@ -236,6 +243,8 @@ def run_audit() -> List[AuditSectionResult]:
         logger.info("Completed section '%s'", name)
         results.append(result)
 
+    overall = "PASS" if all(r.status == "PASS" for r in results) else "FAIL"
+    db.finalize_run(run_id, overall)
     logger.info("Audit run complete")
     return results
 
