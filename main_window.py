@@ -56,6 +56,7 @@ class MainWindow(QtWidgets.QMainWindow):
     def _validate_api(self) -> None:
         dialog = ApiValidationStatusDialog(self)
         thread = ApiValidationThread(dialog)
+        thread.progress.connect(dialog.update_status)
         thread.finished.connect(dialog.accept)
         dialog.show()
         thread.start()

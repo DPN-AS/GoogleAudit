@@ -38,22 +38,19 @@ class DriveAnalyticsTab(QWidget):
 
     def refresh(self) -> None:
         """Run Drive data security audit and display the findings."""
-        results = audit_engine.audit_drive_data_security()
-        if not results:
-            # ``audit_drive_data_security`` currently returns ``None``.  The
-            # table is cleared so the UI remains responsive when the function
-            # is later implemented.
-            self.table.setRowCount(0)
-            return
+        result = audit_engine.audit_drive_data_security()
+        self._populate_results(result.findings)
 
-        self._populate_results(results)
-
-    def _populate_results(self, findings: Iterable[Mapping[str, str]]) -> None:
+    def _populate_results(self, findings: Iterable[Mapping[str, str]] | Iterable[object]) -> None:
         """Populate ``self.table`` with the given findings."""
         self.table.setRowCount(0)
         for row, finding in enumerate(findings):
             self.table.insertRow(row)
-            issue = finding.get("message", "")
-            severity = finding.get("severity", "")
+            if isinstance(finding, dict):
+                issue = finding.get("message", "")
+                severity = finding.get("severity", "")
+            else:
+                issue = getattr(finding, "message", "")
+                severity = getattr(finding, "severity", "")
             self.table.setItem(row, 0, QTableWidgetItem(issue))
             self.table.setItem(row, 1, QTableWidgetItem(severity))

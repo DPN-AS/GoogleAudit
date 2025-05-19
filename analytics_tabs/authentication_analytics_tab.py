@@ -41,7 +41,13 @@ class AuthenticationAnalyticsTab(QWidget):
         """Refresh displayed data from the most recent audit run."""
 
         run_data = fetch_last_run() or {}
-        metrics = run_data.get("authentication_stats", {})
+        section = next(
+            (s for s in run_data.get("sections", []) if s.get("name") == "Authentication"),
+            None,
+        )
+        metrics = {}
+        if section:
+            metrics = {item["key"]: item["value"] for item in section.get("stats", [])}
 
         self._metrics_table.setRowCount(len(metrics))
         for row, (key, value) in enumerate(metrics.items()):
@@ -50,9 +56,10 @@ class AuthenticationAnalyticsTab(QWidget):
 
         # Example chart generation for MFA statistics.
         if "mfa_enabled_percent" in metrics:
+            percent = float(metrics["mfa_enabled_percent"])
             self._chart_factory.create_pie_chart(
                 {
-                    "MFA Enabled": metrics["mfa_enabled_percent"],
-                    "Other": 100 - metrics["mfa_enabled_percent"],
+                    "MFA Enabled": percent,
+                    "Other": 100 - percent,
                 }
             )

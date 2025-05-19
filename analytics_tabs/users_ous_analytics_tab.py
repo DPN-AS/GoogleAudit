@@ -30,8 +30,14 @@ class UsersOUsAnalyticsTab(QWidget):
 
     def refresh(self) -> None:
         """Reload statistics from the latest audit run."""
-        results = fetch_last_run()
-        stats = results.get("users_and_ous", {}) if results else {}
+        run_data = fetch_last_run() or {}
+        section = next(
+            (s for s in run_data.get("sections", []) if s.get("name") == "Users and OUs"),
+            None,
+        )
+        stats = {}
+        if section:
+            stats = {item["key"]: item["value"] for item in section.get("stats", [])}
         self._populate_tree(stats)
 
     def _populate_tree(self, stats: Dict[str, int]) -> None:

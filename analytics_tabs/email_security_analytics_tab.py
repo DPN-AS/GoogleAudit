@@ -54,7 +54,17 @@ class EmailSecurityAnalyticsTab(QWidget):
         if not run_data:
             return
 
-        email_info = run_data.get("email_security", {})
+        section = next(
+            (s for s in run_data.get("sections", []) if s.get("name") == "Email Security"),
+            None,
+        )
+        if not section:
+            return
+
+        email_info = {
+            "stats": {item["key"]: item["value"] for item in section.get("stats", [])},
+            "findings": section.get("findings", []),
+        }
 
         for row, (key, value) in enumerate(email_info.get("stats", {}).items()):
             self._table.insertRow(row)
