@@ -28,6 +28,8 @@ class EmailSecurityAnalyticsTab(QWidget):
     """Display Gmail security statistics and findings."""
 
     def __init__(self, parent: QWidget | None = None) -> None:
+        """Construct the tab layout and widgets."""
+
         super().__init__(parent)
 
         layout = QVBoxLayout(self)

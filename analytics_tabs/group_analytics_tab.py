@@ -35,6 +35,8 @@ class GroupAnalyticsTab(QWidget):
     """UI widget for displaying group management analysis results."""
 
     def __init__(self) -> None:
+        """Initialise the widget and set up the UI."""
+
         super().__init__()
         self._init_ui()
 
