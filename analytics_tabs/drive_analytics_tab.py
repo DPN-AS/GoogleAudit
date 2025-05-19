@@ -20,6 +20,8 @@ class DriveAnalyticsTab(QWidget):
     """Widget showing Drive security statistics and findings."""
 
     def __init__(self) -> None:
+        """Create the tab and set up the user interface."""
+
         super().__init__()
         self._setup_ui()
 

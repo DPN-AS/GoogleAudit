@@ -15,16 +15,21 @@ tables::
 Only a subset of the schema is required for report generation.  The
 functions below provide convenient read access returning dictionaries so
 that report generation code can easily consume the stored audit data.
+
+The database location defaults to ``gaudit.db`` in the current working
+directory but can be overridden via the ``GAUDIT_DB_PATH`` environment
+variable.
 """
 
 from __future__ import annotations
 
 from pathlib import Path
+import os
 import sqlite3
 from typing import Any, Iterable
 
 
-DB_FILE = Path("gaudit.db")
+DB_FILE = Path(os.environ.get("GAUDIT_DB_PATH", "gaudit.db"))
 
 
 def _ensure_conn(

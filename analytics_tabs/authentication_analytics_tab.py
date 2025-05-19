@@ -24,6 +24,8 @@ class AuthenticationAnalyticsTab(QWidget):
     """Widget displaying authentication-related analytics."""
 
     def __init__(self) -> None:
+        """Initialise the tab and create child widgets."""
+
         super().__init__()
         self._chart_factory = ChartFactory()
 

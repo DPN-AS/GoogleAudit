@@ -8,9 +8,20 @@ GAudit provides a simple GUI for auditing Google Workspace environments. The imp
    ```bash
    pip install -r requirements.txt
    ```
+   PDF export requires the `wkhtmltopdf` binary. On Debian/Ubuntu you can install it with:
+   ```bash
+   sudo apt-get install wkhtmltopdf
+   ```
+
 2. Run the application:
    ```bash
    python main.py
    ```
 
-Running the app will create `gaudit.db` in the working directory to store audit results.
+
+Running the app will create `gaudit.db` in the working directory. You can override this path by setting the `GAUDIT_DB_PATH` environment variable:
+
+```bash
+export GAUDIT_DB_PATH=/path/to/custom.db
+python main.py
+```

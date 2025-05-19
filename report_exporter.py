@@ -8,6 +8,8 @@ import report_db
 
 
 def _format_findings(findings: List[Dict[str, Any]]) -> str:
+    """Return HTML table rows for ``findings``."""
+
     rows = []
     for finding in findings:
         severity = finding.get("severity", "")
@@ -19,6 +21,8 @@ def _format_findings(findings: List[Dict[str, Any]]) -> str:
 
 
 def _format_stats(stats: Dict[str, Any]) -> str:
+    """Return HTML list items for statistic key/value pairs."""
+
     if not stats:
         return "<li>No statistics available</li>"
     return "\n".join(f"<li>{key}: {value}</li>" for key, value in stats.items())
@@ -68,4 +72,9 @@ def export_pdf_report(path: str) -> None:
         import pdfkit
     except ImportError as exc:  # pragma: no cover - optional dependency
         raise RuntimeError("pdfkit is required for PDF export") from exc
-    pdfkit.from_string(html, path)
+    try:
+        pdfkit.from_string(html, path)
+    except OSError as exc:  # pragma: no cover - missing wkhtmltopdf
+        raise RuntimeError(
+            "wkhtmltopdf is required for PDF export; install it system-wide"
+        ) from exc

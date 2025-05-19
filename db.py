@@ -1,4 +1,9 @@
-"""SQLite database helpers for GAudit V2."""
+"""SQLite database helpers for GAudit V2.
+
+The location of the SQLite database can be configured with the
+``GAUDIT_DB_PATH`` environment variable.  If not set, ``gaudit.db`` in the
+current working directory is used.
+"""
 
 from __future__ import annotations
 
@@ -7,11 +12,22 @@ import sqlite3
 import time
 from datetime import datetime
 from pathlib import Path
+import os
 from typing import Dict
+import queue
+from contextlib import contextmanager
+import logging
 
-DB_PATH = Path("gaudit.db")
+DB_PATH = Path(os.environ.get("GAUDIT_DB_PATH", "gaudit.db"))
+
+# Pool of reusable SQLite connections
+# Connection pools keyed by database path
+_CONN_POOLS: dict[Path, queue.LifoQueue[sqlite3.Connection]] = {}
+# Tracks which DB path each connection belongs to
+_CONN_PATHS: dict[sqlite3.Connection, Path] = {}
 
 # Tracks section start times to calculate duration
+
 _section_start_times: Dict[int, float] = {}
 
 
@@ -33,16 +49,47 @@ def _validate_non_empty(value: str, name: str) -> None:
 
 
 def _get_conn() -> sqlite3.Connection:
-    """Return a connection to the GAudit database."""
-    conn = sqlite3.connect(DB_PATH)
-    conn.execute("PRAGMA foreign_keys = ON")
+    """Retrieve a connection from the pool or create a new one."""
+    pool = _CONN_POOLS.setdefault(DB_PATH, queue.LifoQueue(maxsize=5))
+    try:
+        conn = pool.get_nowait()
+    except queue.Empty:
+        conn = sqlite3.connect(DB_PATH)
+        conn.execute("PRAGMA foreign_keys = ON")
+        _CONN_PATHS[conn] = DB_PATH
     return conn
+
+
+def _release_conn(conn: sqlite3.Connection) -> None:
+    """Return ``conn`` to the pool or close it if the pool is full."""
+    path = _CONN_PATHS.get(conn, DB_PATH)
+    pool = _CONN_POOLS.setdefault(Path(path), queue.LifoQueue(maxsize=5))
+    try:
+        pool.put_nowait(conn)
+    except queue.Full:
+        conn.close()
+        _CONN_PATHS.pop(conn, None)
+
+
+@contextmanager
+def _managed_conn() -> sqlite3.Connection:
+    """Context manager that handles commits and rollbacks."""
+    conn = _get_conn()
+    try:
+        yield conn
+        conn.commit()
+    except sqlite3.Error:
+        conn.rollback()
+        raise
+    finally:
+        _release_conn(conn)
 
 
 def init_db() -> None:
     """Initialize the database schema."""
     conn = _get_conn()
     try:
+
         cur = conn.cursor()
 
         cur.execute(
@@ -133,8 +180,13 @@ def create_run() -> int:
 
 def start_section(run_id: int, name: str) -> int:
     """Start tracking an audit section."""
-    _validate_positive_int(run_id, "run_id")
-    _validate_non_empty(name, "name")
+    with _managed_conn() as conn:
+        cur = conn.cursor()
+        cur.execute(
+            "INSERT INTO section (run_id, name, status) VALUES (?, ?, ?)",
+            (run_id, name, "in_progress"),
+        )
+        section_id = cur.lastrowid
 
     conn = _get_conn()
     try:
