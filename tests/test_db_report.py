@@ -14,14 +14,15 @@ import report_db
 class DBReportTests(unittest.TestCase):
     def setUp(self) -> None:
         self.tmp = TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
         self.db_path = Path(self.tmp.name) / "gaudit.db"
         self.original_path = db.DB_PATH
         db.DB_PATH = self.db_path
+        self.addCleanup(lambda: setattr(db, "DB_PATH", self.original_path))
         db.init_db()
 
     def tearDown(self) -> None:
         db.DB_PATH = self.original_path
-        self.tmp.cleanup()
 
     def test_init_db_creates_tables(self) -> None:
         """Verify that all expected tables are created."""
