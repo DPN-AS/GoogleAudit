@@ -5,6 +5,7 @@ from __future__ import annotations
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+import os
 
 import db
 import audit_engine
@@ -39,6 +40,16 @@ class AuditEngineTests(unittest.TestCase):
         # Verify records persisted via the reporting helper
         run = report_db.fetch_last_run(db_path=db.DB_PATH)
         self.assertEqual(len(run.get("sections", [])), 10)
+
+    def test_authentication_fails_without_two_fa(self) -> None:
+        os.environ["GAUDIT_TWO_FA_ENABLED"] = "0"
+        try:
+            result = audit_engine.audit_authentication()
+        finally:
+            os.environ.pop("GAUDIT_TWO_FA_ENABLED", None)
+
+        self.assertEqual(result.status, "FAIL")
+        self.assertEqual(result.stats.get("two_fa_enabled"), "False")
 
 
 if __name__ == "__main__":  # pragma: no cover - manual execution
