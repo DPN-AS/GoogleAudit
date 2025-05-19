@@ -46,10 +46,8 @@ class GroupAnalyticsTab(QWidget):
         self._layout = QVBoxLayout(self)
 
         self._header = QLabel("Group Management Insights")
-        self._table = QTableWidget(0, 4)
-        self._table.setHorizontalHeaderLabels(
-            ["Group", "Members", "External Members", "External Sharing"]
-        )
+        self._table = QTableWidget(0, 2)
+        self._table.setHorizontalHeaderLabels(["Metric", "Value"])
         if hasattr(self._table, "horizontalHeader"):
             self._table.horizontalHeader().setSectionResizeMode(
                 QHeaderView.ResizeMode.Stretch  # type: ignore[attr-defined]
@@ -69,19 +67,11 @@ class GroupAnalyticsTab(QWidget):
     def refresh(self) -> None:
         """Populate the table with the latest group audit results."""
 
-        results = audit_engine.audit_groups()
+        result = audit_engine.audit_groups()
+        stats = result.stats
 
-        rows: Iterable[Mapping[str, object]] = results or []
-        rows = list(rows)  # ensure length is known
-        self._table.setRowCount(len(rows))
+        self._table.setRowCount(len(stats))
 
-        for row_index, entry in enumerate(rows):
-            group = str(entry.get("group", ""))
-            member_count = str(entry.get("members", ""))
-            external_members = str(entry.get("external_members", ""))
-            ext_share = "Yes" if entry.get("allow_external", False) else "No"
-
-            self._table.setItem(row_index, 0, QTableWidgetItem(group))
-            self._table.setItem(row_index, 1, QTableWidgetItem(member_count))
-            self._table.setItem(row_index, 2, QTableWidgetItem(external_members))
-            self._table.setItem(row_index, 3, QTableWidgetItem(ext_share))
+        for row_index, (key, value) in enumerate(stats.items()):
+            self._table.setItem(row_index, 0, QTableWidgetItem(str(key)))
+            self._table.setItem(row_index, 1, QTableWidgetItem(str(value)))
