@@ -68,4 +68,9 @@ def export_pdf_report(path: str) -> None:
         import pdfkit
     except ImportError as exc:  # pragma: no cover - optional dependency
         raise RuntimeError("pdfkit is required for PDF export") from exc
-    pdfkit.from_string(html, path)
+    try:
+        pdfkit.from_string(html, path)
+    except OSError as exc:  # pragma: no cover - missing wkhtmltopdf
+        raise RuntimeError(
+            "wkhtmltopdf is required for PDF export; install it system-wide"
+        ) from exc
