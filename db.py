@@ -1,4 +1,9 @@
-"""SQLite database helpers for GAudit V2."""
+"""SQLite database helpers for GAudit V2.
+
+The location of the SQLite database can be configured with the
+``GAUDIT_DB_PATH`` environment variable.  If not set, ``gaudit.db`` in the
+current working directory is used.
+"""
 
 from __future__ import annotations
 
@@ -6,9 +11,10 @@ import sqlite3
 import time
 from datetime import datetime
 from pathlib import Path
+import os
 from typing import Dict
 
-DB_PATH = Path("gaudit.db")
+DB_PATH = Path(os.environ.get("GAUDIT_DB_PATH", "gaudit.db"))
 
 # Tracks section start times to calculate duration
 _section_start_times: Dict[int, float] = {}
