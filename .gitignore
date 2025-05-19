@@ -1,0 +1,10 @@
+gaudit.db
+__pycache__/audit_visuals.cpython-312.pyc
+__pycache__/main_window.cpython-312.pyc
+__pycache__/report_db.cpython-312.pyc
+analytics_tabs/__pycache__/__init__.cpython-312.pyc
+analytics_tabs/__pycache__/authentication_analytics_tab.cpython-312.pyc
+analytics_tabs/__pycache__/drive_analytics_tab.cpython-312.pyc
+analytics_tabs/__pycache__/email_security_analytics_tab.cpython-312.pyc
+analytics_tabs/__pycache__/group_analytics_tab.cpython-312.pyc
+analytics_tabs/__pycache__/users_ous_analytics_tab.cpython-312.pyc
