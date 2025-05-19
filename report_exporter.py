@@ -8,6 +8,8 @@ import report_db
 
 
 def _format_findings(findings: List[Dict[str, Any]]) -> str:
+    """Return HTML table rows for ``findings``."""
+
     rows = []
     for finding in findings:
         severity = finding.get("severity", "")
@@ -19,6 +21,8 @@ def _format_findings(findings: List[Dict[str, Any]]) -> str:
 
 
 def _format_stats(stats: Dict[str, Any]) -> str:
+    """Return HTML list items for statistic key/value pairs."""
+
     if not stats:
         return "<li>No statistics available</li>"
     return "\n".join(f"<li>{key}: {value}</li>" for key, value in stats.items())
