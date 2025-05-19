@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Callable, Dict, Iterable, List
 
+import settings
+
 import db
 
 
@@ -43,12 +45,8 @@ def validate_api_services() -> Dict[str, bool]:
     implementation simulates connectivity checks and always succeeds.
     """
 
-    services = [
-        "admin_sdk",
-        "drive_api",
-        "gmail_api",
-        "groups_settings_api",
-    ]
+    config = settings.load_settings()
+    services = config.get("api_services", [])
 
     status: Dict[str, bool] = {}
     for service in services:
