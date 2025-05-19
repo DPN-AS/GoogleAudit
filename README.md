@@ -8,6 +8,11 @@ GAudit provides a simple GUI for auditing Google Workspace environments. The imp
    ```bash
    pip install -r requirements.txt
    ```
+   PDF export requires the `wkhtmltopdf` binary. On Debian/Ubuntu you can install it with:
+   ```bash
+   sudo apt-get install wkhtmltopdf
+   ```
+
 2. Run the application:
    ```bash
    python main.py
