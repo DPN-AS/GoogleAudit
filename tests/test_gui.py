@@ -8,12 +8,20 @@ from tempfile import TemporaryDirectory
 import unittest
 from unittest.mock import patch
 
-from PyQt6.QtWidgets import QApplication, QDialog
+try:
+    from PyQt6.QtWidgets import QApplication, QDialog
+except ModuleNotFoundError:  # pragma: no cover - optional dependency
+    QApplication = None  # type: ignore[assignment]
+    QDialog = None  # type: ignore[assignment]
 
-import db
-from main_window import MainWindow, RunAuditSettingsDialog, AuditWorker
+if QApplication is not None:
+    import db
+    from main_window import MainWindow, RunAuditSettingsDialog, AuditWorker
+else:  # pragma: no cover - optional dependency
+    db = None  # type: ignore[assignment]
 
 
+@unittest.skipIf(QApplication is None, "PyQt6 not available")
 class MainWindowGUITests(unittest.TestCase):
     """Basic GUI tests exercising the main window."""
 

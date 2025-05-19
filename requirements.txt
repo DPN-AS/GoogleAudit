@@ -3,3 +3,4 @@ google-auth
 keyring
 matplotlib
 pdfkit
+pydantic
