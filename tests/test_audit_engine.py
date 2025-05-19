@@ -16,13 +16,14 @@ class AuditEngineTests(unittest.TestCase):
 
     def setUp(self) -> None:
         self.tmp = TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
         self.original_path = db.DB_PATH
         db.DB_PATH = Path(self.tmp.name) / "audit.db"
+        self.addCleanup(lambda: setattr(db, "DB_PATH", self.original_path))
         db.init_db()
 
     def tearDown(self) -> None:
         db.DB_PATH = self.original_path
-        self.tmp.cleanup()
 
     def test_run_audit_creates_db_and_sections(self) -> None:
         """Ensure ``run_audit`` creates all sections and the DB file."""
