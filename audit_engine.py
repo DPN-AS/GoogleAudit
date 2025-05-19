@@ -8,7 +8,10 @@ import os
 
 import settings
 
+import logging
 import db
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -204,7 +207,7 @@ def audit_chromeos_devices() -> AuditSectionResult:
 
 def run_audit() -> List[AuditSectionResult]:
     """Run all audit sections and record results in the database."""
-
+    logger.info("Starting audit run")
     run_id = db.create_run()
 
     sections: List[tuple[str, Callable[[], AuditSectionResult]]] = [
@@ -222,6 +225,7 @@ def run_audit() -> List[AuditSectionResult]:
 
     results: List[AuditSectionResult] = []
     for name, func in sections:
+        logger.info("Running section '%s'", name)
         section_id = db.start_section(run_id, name)
         result = func()
         for finding in result.findings:
@@ -229,7 +233,9 @@ def run_audit() -> List[AuditSectionResult]:
         for key, value in result.stats.items():
             db.insert_stat(section_id, key, value)
         db.complete_section(section_id)
+        logger.info("Completed section '%s'", name)
         results.append(result)
 
+    logger.info("Audit run complete")
     return results
 

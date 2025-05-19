@@ -18,6 +18,7 @@ GAudit provides a simple GUI for auditing Google Workspace environments. The imp
    python main.py
    ```
 
+
 Running the app will create `gaudit.db` in the working directory. You can override this path by setting the `GAUDIT_DB_PATH` environment variable:
 
 ```bash
