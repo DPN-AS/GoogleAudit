@@ -203,14 +203,8 @@ def create_run(
 
 def start_section(run_id: int, name: str) -> int:
     """Start tracking an audit section."""
-    with _managed_conn() as conn:
-        cur = conn.cursor()
-        cur.execute(
-            "INSERT INTO section (run_id, name, status) VALUES (?, ?, ?)",
-            (run_id, name, "in_progress"),
-        )
-        section_id = cur.lastrowid
-
+    _validate_positive_int(run_id, "run_id")
+    _validate_non_empty(name, "name")
     conn = _get_conn()
     try:
         cur = conn.cursor()
