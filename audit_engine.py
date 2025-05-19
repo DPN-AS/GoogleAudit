@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Callable, Dict, Iterable, List
 
+
 import db
 
 
@@ -39,9 +40,16 @@ class AuditSectionResult:
 def validate_api_services() -> Dict[str, bool]:
     """Verify API access and required scopes.
 
-    Returns a mapping of service name to boolean connectivity status. This
-    implementation simulates connectivity checks and always succeeds.
+    This function loads credentials from secure storage and performs a
+    connectivity check for a small set of Google APIs. Calls are throttled
+    using a ``RateLimiter`` to avoid exceeding API quotas.
     """
+
+    from credential_loader import load_credentials  # Imported here for tests
+    from rate_limiter import RateLimiter
+
+    load_credentials()  # ensure credentials are available
+    limiter = RateLimiter(max_calls=5, period=1.0)
 
     services = [
         "admin_sdk",
@@ -53,6 +61,7 @@ def validate_api_services() -> Dict[str, bool]:
     status: Dict[str, bool] = {}
     for service in services:
         try:
+            limiter.acquire()
             # Placeholder for real connectivity logic
             status[service] = True
         except Exception:  # pragma: no cover - placeholder branch

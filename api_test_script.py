@@ -21,6 +21,8 @@ from __future__ import annotations
 
 from typing import Callable
 
+from rate_limiter import RateLimiter
+
 
 def _require_google_client() -> "module":
     """Import :mod:`googleapiclient.discovery` or raise a helpful error."""
@@ -49,6 +51,8 @@ def run_api_tests() -> None:
     if creds is None:
         print("Unable to load credentials")
         return
+
+    rate_limiter = RateLimiter(max_calls=5, period=1.0)
 
     ServiceSpec = tuple[str, str, Callable[["object"], None]]
     services: dict[str, ServiceSpec] = {
@@ -87,6 +91,7 @@ def run_api_tests() -> None:
     for name, (service_name, version, test_fn) in services.items():
         print(f"Testing {name}...", end="", flush=True)
         try:
+            rate_limiter.acquire()
             service = discovery.build(
                 service_name, version, credentials=creds, cache_discovery=False
             )
