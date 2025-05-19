@@ -13,4 +13,4 @@ GAudit provides a simple GUI for auditing Google Workspace environments. The imp
    python main.py
    ```
 
-Running the app will create `gaudit.db` in the working directory to store audit results.
+Running the app will create `gaudit.db` in the working directory to store audit results. Basic runtime information is logged to `gaudit.log`.

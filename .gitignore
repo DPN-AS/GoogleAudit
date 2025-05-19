@@ -1,4 +1,6 @@
 gaudit.db
+gaudit.log
+__pycache__/
 __pycache__/audit_visuals.cpython-312.pyc
 __pycache__/main_window.cpython-312.pyc
 __pycache__/report_db.cpython-312.pyc
