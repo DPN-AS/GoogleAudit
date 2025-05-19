@@ -73,6 +73,25 @@ class DBReportTests(unittest.TestCase):
         last = report_db.fetch_last_run(db_path=self.db_path)
         self.assertEqual(last["id"], run2)
 
+    def test_create_run_with_metadata(self) -> None:
+        """``create_run`` should store optional metadata and completion info."""
+
+        run_id = db.create_run(
+            domain="example.com",
+            cli_args={"intensive": True},
+            skipped_services=["drive"],
+        )
+        sec = db.start_section(run_id, "Example")
+        db.complete_section(sec)
+        db.finalize_run(run_id, "PASS")
+
+        run = report_db.fetch_run(run_id, db_path=self.db_path)
+        self.assertEqual(run["domain"], "example.com")
+        self.assertIn("intensive", run["cli_args_json"])
+        self.assertIn("drive", run["skipped_services_json"])
+        self.assertEqual(run["overall_status"], "PASS")
+        self.assertIsNotNone(run["completed_at"])
+
 
 if __name__ == "__main__":  # pragma: no cover - manual execution
     unittest.main()

@@ -4,9 +4,10 @@ from __future__ import annotations
 
 import sqlite3
 import time
+import json
 from datetime import datetime
 from pathlib import Path
-from typing import Dict
+from typing import Dict, Any, Iterable
 
 DB_PATH = Path("gaudit.db")
 
@@ -87,15 +88,41 @@ def init_db() -> None:
     conn.close()
 
 
-def create_run() -> int:
-    """Create a new audit run record."""
+def create_run(
+    *,
+    domain: str | None = None,
+    cli_args: dict[str, Any] | None = None,
+    skipped_services: Iterable[str] | None = None,
+) -> int:
+    """Create a new audit run record.
+
+    Parameters
+    ----------
+    domain:
+        Domain being audited if applicable.
+    cli_args:
+        Mapping of command line arguments used for the run.
+    skipped_services:
+        Iterable of services that were intentionally skipped.
+    """
+
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute(
-        "INSERT INTO run (started_at) VALUES (?)",
-        (datetime.utcnow().isoformat(),),
+        """INSERT INTO run (started_at, domain, cli_args_json, 
+                         skipped_services_json, overall_status)
+           VALUES (?, ?, ?, ?, ?)""",
+        (
+            datetime.utcnow().isoformat(),
+            domain,
+            json.dumps(cli_args) if cli_args is not None else None,
+            json.dumps(list(skipped_services))
+            if skipped_services is not None
+            else None,
+            "IN_PROGRESS",
+        ),
     )
-    run_id = cur.lastrowid
+    run_id = int(cur.lastrowid)
     conn.commit()
     conn.close()
     return run_id
@@ -165,6 +192,19 @@ def insert_raw(section_id: int, raw_data: bytes) -> None:
     cur.execute(
         "INSERT INTO raw_object (section_id, data) VALUES (?, ?)",
         (section_id, sqlite3.Binary(raw_data)),
+    )
+    conn.commit()
+    conn.close()
+
+
+def finalize_run(run_id: int, overall_status: str) -> None:
+    """Mark a run as completed with ``overall_status``."""
+
+    conn = _get_conn()
+    cur = conn.cursor()
+    cur.execute(
+        "UPDATE run SET completed_at = ?, overall_status = ? WHERE id = ?",
+        (datetime.utcnow().isoformat(), overall_status, run_id),
     )
     conn.commit()
     conn.close()

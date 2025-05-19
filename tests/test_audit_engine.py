@@ -39,6 +39,8 @@ class AuditEngineTests(unittest.TestCase):
         # Verify records persisted via the reporting helper
         run = report_db.fetch_last_run(db_path=db.DB_PATH)
         self.assertEqual(len(run.get("sections", [])), 10)
+        self.assertEqual(run["overall_status"], "PASS")
+        self.assertIsNotNone(run["completed_at"])
 
 
 if __name__ == "__main__":  # pragma: no cover - manual execution
