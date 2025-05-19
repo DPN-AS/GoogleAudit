@@ -19,6 +19,8 @@ class UsersOUsAnalyticsTab(QWidget):
     """Display analytics for users and organizational units."""
 
     def __init__(self, parent: QWidget | None = None) -> None:
+        """Set up the tree view used to present user and OU stats."""
+
         super().__init__(parent)
         self._layout = QVBoxLayout(self)
         self._title = QLabel("User and OU Analysis", self)
