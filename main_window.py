@@ -5,11 +5,21 @@ This module contains the high level PyQt6 GUI components.
 from __future__ import annotations
 
 from typing import Optional
+import os
 
 from PyQt6 import QtCore, QtWidgets
 from PyQt6.QtGui import QAction
 
+from analytics_tabs.authentication_analytics_tab import (
+    AuthenticationAnalyticsTab,
+)
+from analytics_tabs.drive_analytics_tab import DriveAnalyticsTab
+from analytics_tabs.email_security_analytics_tab import EmailSecurityAnalyticsTab
+from analytics_tabs.group_analytics_tab import GroupAnalyticsTab
+from analytics_tabs.users_ous_analytics_tab import UsersOUsAnalyticsTab
+
 import audit_engine
+import db
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -40,17 +50,17 @@ class MainWindow(QtWidgets.QMainWindow):
         audit_menu.addAction(run_action)
 
     def _populate_tabs(self) -> None:
-        # Placeholders for analytics tabs
-        for name in [
-            "Authentication",
-            "Drive",
-            "Email Security",
-            "Groups",
-            "Users/OUs",
-        ]:
-            widget = QtWidgets.QWidget()
-            layout = QtWidgets.QVBoxLayout(widget)
-            layout.addWidget(QtWidgets.QLabel(f"{name} analytics coming soon"))
+        """Instantiate analytics tabs and add them to the window."""
+
+        tabs = {
+            "Authentication": AuthenticationAnalyticsTab(),
+            "Drive": DriveAnalyticsTab(),
+            "Email Security": EmailSecurityAnalyticsTab(),
+            "Groups": GroupAnalyticsTab(),
+            "Users/OUs": UsersOUsAnalyticsTab(),
+        }
+
+        for name, widget in tabs.items():
             self._tabs.addTab(widget, name)
 
     def _validate_api(self) -> None:
@@ -64,6 +74,13 @@ class MainWindow(QtWidgets.QMainWindow):
     def _run_audit(self) -> None:
         settings_dialog = RunAuditSettingsDialog(self)
         if settings_dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
+            if settings_dialog.create_new_db.isChecked():
+                try:
+                    os.remove(db.DB_PATH)
+                except OSError:
+                    pass
+                db.init_db()
+
             worker_dialog = QtWidgets.QProgressDialog(
                 "Running audit...", "Cancel", 0, 0, self
             )
@@ -76,11 +93,20 @@ class MainWindow(QtWidgets.QMainWindow):
                 lambda msg: worker_dialog.setLabelText(msg)
             )
             worker.finished.connect(worker_dialog.accept)
+            worker.finished.connect(self._refresh_tabs)
             worker.start()
 
     def show(self) -> None:
         """Display the main window."""
         super().show()
+
+    def _refresh_tabs(self) -> None:
+        """Call ``refresh()`` on each tab if available."""
+        for i in range(self._tabs.count()):
+            widget = self._tabs.widget(i)
+            refresh = getattr(widget, "refresh", None)
+            if callable(refresh):
+                refresh()
 
 
 class ApiValidationThread(QtCore.QThread):
@@ -137,19 +163,7 @@ class AuditWorker(QtCore.QThread):
     progress_updated = QtCore.pyqtSignal(str)
 
     def run(self) -> None:  # type: ignore[override]
-        tasks = [
-            audit_engine.audit_users_and_ous,
-            audit_engine.audit_authentication,
-            audit_engine.audit_admin_privileges,
-            audit_engine.audit_groups,
-            audit_engine.audit_drive_data_security,
-            audit_engine.audit_email_security,
-            audit_engine.audit_application_security,
-            audit_engine.audit_logging_and_alerts,
-            audit_engine.audit_mdm_basics,
-            audit_engine.audit_chromeos_devices,
-        ]
-        for task in tasks:
-            self.progress_updated.emit(f"Running {task.__name__}...")
-            task()
+        self.progress_updated.emit("Starting audit")
+        for section in audit_engine.run_audit():
+            self.progress_updated.emit(f"Completed {section.name}")
         self.progress_updated.emit("Audit complete")
