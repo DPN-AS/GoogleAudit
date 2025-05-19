@@ -35,11 +35,15 @@ class MainWindow(QtWidgets.QMainWindow):
         self._populate_tabs()
 
     def _create_status_bar(self) -> None:
+        """Initialise the status bar shown at the bottom of the window."""
+
         self._status = QtWidgets.QStatusBar()
         self.setStatusBar(self._status)
         self._status.showMessage("Ready")
 
     def _create_menus(self) -> None:
+        """Create the application menu bar and attach actions."""
+
         menubar = self.menuBar()
         audit_menu = menubar.addMenu("Audit")
         validate_action = QAction("Validate API", self)
@@ -64,6 +68,8 @@ class MainWindow(QtWidgets.QMainWindow):
             self._tabs.addTab(widget, name)
 
     def _validate_api(self) -> None:
+        """Run API connectivity checks in a background thread."""
+
         dialog = ApiValidationStatusDialog(self)
         thread = ApiValidationThread(dialog)
         thread.progress.connect(dialog.update_status)
@@ -72,6 +78,8 @@ class MainWindow(QtWidgets.QMainWindow):
         thread.start()
 
     def _run_audit(self) -> None:
+        """Launch the audit process and show progress to the user."""
+
         settings_dialog = RunAuditSettingsDialog(self)
         if settings_dialog.exec() == QtWidgets.QDialog.DialogCode.Accepted:
             if settings_dialog.create_new_db.isChecked():
@@ -115,9 +123,13 @@ class ApiValidationThread(QtCore.QThread):
     progress = QtCore.pyqtSignal(str)
 
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None) -> None:
+        """Initialise the thread and store the optional ``parent`` widget."""
+
         super().__init__(parent)
 
     def run(self) -> None:  # type: ignore[override]
+        """Execute API validation and emit progress updates."""
+
         self.progress.emit("Validating APIs...")
         audit_engine.validate_api_services()
         self.progress.emit("Validation complete")
@@ -127,6 +139,8 @@ class ApiValidationStatusDialog(QtWidgets.QDialog):
     """Dialog to show API validation status."""
 
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None) -> None:
+        """Construct the dialog with an initial status label."""
+
         super().__init__(parent)
         self.setWindowTitle("API Validation")
         self._label = QtWidgets.QLabel("Starting validation...", self)
@@ -134,6 +148,8 @@ class ApiValidationStatusDialog(QtWidgets.QDialog):
         layout.addWidget(self._label)
 
     def update_status(self, message: str) -> None:
+        """Update the label text with ``message``."""
+
         self._label.setText(message)
 
 
@@ -141,6 +157,8 @@ class RunAuditSettingsDialog(QtWidgets.QDialog):
     """Dialog for configuring audit run parameters."""
 
     def __init__(self, parent: Optional[QtWidgets.QWidget] = None) -> None:
+        """Create the settings dialog used before running an audit."""
+
         super().__init__(parent)
         self.setWindowTitle("Run Audit")
         layout = QtWidgets.QVBoxLayout(self)
@@ -163,6 +181,8 @@ class AuditWorker(QtCore.QThread):
     progress_updated = QtCore.pyqtSignal(str)
 
     def run(self) -> None:  # type: ignore[override]
+        """Execute the audit and emit progress messages."""
+
         self.progress_updated.emit("Starting audit")
         for section in audit_engine.run_audit():
             self.progress_updated.emit(f"Completed {section.name}")
