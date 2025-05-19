@@ -73,6 +73,16 @@ class DBReportTests(unittest.TestCase):
         last = report_db.fetch_last_run(db_path=self.db_path)
         self.assertEqual(last["id"], run2)
 
+    def test_invalid_inputs_raise_value_error(self) -> None:
+        with self.assertRaises(ValueError):
+            db.start_section(0, "bad")
+        run_id = db.create_run()
+        sec_id = db.start_section(run_id, "Good")
+        with self.assertRaises(ValueError):
+            db.insert_finding(sec_id, "", "msg")
+        with self.assertRaises(ValueError):
+            report_db.fetch_run(0, db_path=self.db_path)
+
 
 if __name__ == "__main__":  # pragma: no cover - manual execution
     unittest.main()

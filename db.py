@@ -8,6 +8,8 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict
 
+import data_validator
+
 DB_PATH = Path("gaudit.db")
 
 # Tracks section start times to calculate duration
@@ -103,6 +105,9 @@ def create_run() -> int:
 
 def start_section(run_id: int, name: str) -> int:
     """Start tracking an audit section."""
+    data_validator.ensure_positive_int(run_id, "run_id")
+    data_validator.ensure_non_empty_str(name, "name")
+
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute(
@@ -119,6 +124,8 @@ def start_section(run_id: int, name: str) -> int:
 
 def complete_section(section_id: int) -> None:
     """Mark an audit section as complete."""
+    data_validator.ensure_positive_int(section_id, "section_id")
+
     start_time = _section_start_times.pop(section_id, None)
     duration = None
     if start_time is not None:
@@ -136,6 +143,10 @@ def complete_section(section_id: int) -> None:
 
 def insert_finding(section_id: int, severity: str, message: str) -> None:
     """Record a security finding."""
+    data_validator.ensure_positive_int(section_id, "section_id")
+    data_validator.ensure_non_empty_str(severity, "severity")
+    data_validator.ensure_non_empty_str(message, "message")
+
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute(
@@ -148,6 +159,10 @@ def insert_finding(section_id: int, severity: str, message: str) -> None:
 
 def insert_stat(section_id: int, key: str, value: str) -> None:
     """Store a statistic for an audit section."""
+    data_validator.ensure_positive_int(section_id, "section_id")
+    data_validator.ensure_non_empty_str(key, "key")
+    data_validator.ensure_non_empty_str(value, "value")
+
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute(
@@ -160,6 +175,10 @@ def insert_stat(section_id: int, key: str, value: str) -> None:
 
 def insert_raw(section_id: int, raw_data: bytes) -> None:
     """Save raw audit data."""
+    data_validator.ensure_positive_int(section_id, "section_id")
+    if not isinstance(raw_data, (bytes, bytearray)):
+        raise ValueError("raw_data must be bytes-like")
+
     conn = _get_conn()
     cur = conn.cursor()
     cur.execute(

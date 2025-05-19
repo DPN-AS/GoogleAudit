@@ -34,6 +34,16 @@ class DataValidatorTests(unittest.TestCase):
         self.assertNotIn("/", name)
         self.assertNotIn("\\", name)
 
+    def test_ensure_positive_int(self) -> None:
+        self.assertEqual(data_validator.ensure_positive_int(5), 5)
+        with self.assertRaises(ValueError):
+            data_validator.ensure_positive_int(0)
+
+    def test_ensure_non_empty_str(self) -> None:
+        self.assertEqual(data_validator.ensure_non_empty_str("ok"), "ok")
+        with self.assertRaises(ValueError):
+            data_validator.ensure_non_empty_str("  ")
+
 
 if __name__ == "__main__":  # pragma: no cover - manual execution
     unittest.main()

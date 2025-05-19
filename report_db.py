@@ -23,6 +23,8 @@ from pathlib import Path
 import sqlite3
 from typing import Any, Iterable
 
+import data_validator
+
 
 DB_FILE = Path("gaudit.db")
 
@@ -79,6 +81,8 @@ def fetch_last_run(*, db_path: str | Path = DB_FILE) -> dict:
 def fetch_run(run_id: int, *, db_path: str | Path = DB_FILE) -> dict:
     """Return a specific run by ``run_id`` including its sections."""
 
+    data_validator.ensure_positive_int(run_id, "run_id")
+
     conn, close_conn = _ensure_conn(db_path)
     try:
         row = conn.execute(
@@ -104,6 +108,8 @@ def fetch_sections(
     conn: sqlite3.Connection | None = None,
 ) -> list[dict]:
     """Return a list of sections for ``run_id`` with findings and stats."""
+
+    data_validator.ensure_positive_int(run_id, "run_id")
 
     conn, close_conn = _ensure_conn(db_path, conn)
     try:
@@ -133,6 +139,8 @@ def fetch_findings(
 ) -> list[dict]:
     """Return all findings for ``section_id``."""
 
+    data_validator.ensure_positive_int(section_id, "section_id")
+
     conn, close_conn = _ensure_conn(db_path, conn)
     try:
         cur = conn.execute(
@@ -155,6 +163,8 @@ def fetch_stats(
 ) -> list[dict]:
     """Return all statistics for ``section_id``."""
 
+    data_validator.ensure_positive_int(section_id, "section_id")
+
     conn, close_conn = _ensure_conn(db_path, conn)
     try:
         cur = conn.execute(
@@ -174,6 +184,8 @@ def fetch_raw_objects(
     conn: sqlite3.Connection | None = None,
 ) -> list[dict]:
     """Return raw objects associated with ``section_id`` if available."""
+
+    data_validator.ensure_positive_int(section_id, "section_id")
 
     conn, close_conn = _ensure_conn(db_path, conn)
     try:

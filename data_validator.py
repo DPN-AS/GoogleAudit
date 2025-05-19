@@ -44,6 +44,22 @@ def is_positive_int(value: str) -> bool:
     return value.isdigit() and int(value) > 0
 
 
+def ensure_positive_int(value: int, name: str = "value") -> int:
+    """Return ``value`` if it is a positive ``int`` else raise ``ValueError``."""
+
+    if not isinstance(value, int) or value <= 0:
+        raise ValueError(f"{name} must be a positive integer")
+    return value
+
+
+def ensure_non_empty_str(value: str, name: str = "value") -> str:
+    """Return ``value`` if it is a non-empty ``str`` else raise ``ValueError``."""
+
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"{name} must be a non-empty string")
+    return value
+
+
 def sanitize_filename(name: str, replacement: str = "_") -> str:
     """Return ``name`` stripped of path separators and invalid characters."""
 
