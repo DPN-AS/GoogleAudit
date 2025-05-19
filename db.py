@@ -1,4 +1,9 @@
-"""SQLite database helpers for GAudit V2."""
+"""SQLite database helpers for GAudit V2.
+
+The location of the SQLite database can be configured with the
+``GAUDIT_DB_PATH`` environment variable.  If not set, ``gaudit.db`` in the
+current working directory is used.
+"""
 
 from __future__ import annotations
 
@@ -6,12 +11,13 @@ import sqlite3
 import time
 from datetime import datetime
 from pathlib import Path
+import os
 from typing import Dict
 import queue
 from contextlib import contextmanager
 import logging
 
-DB_PATH = Path("gaudit.db")
+DB_PATH = Path(os.environ.get("GAUDIT_DB_PATH", "gaudit.db"))
 
 # Pool of reusable SQLite connections
 # Connection pools keyed by database path
